@@ -58,42 +58,47 @@ let parse(l: (string * string list) list) =
 
 let cube_games = parse (clean_slist slist);;
 
-let process_game (cubes: ((string * string) list) list): bool =
-  List.for_all (
+let process_game (cubes: ((string * string) list) list) =
+  let game_cubes = List.map (
     fun cube_game ->
       let rec satisfy (cube_game: (string * string) list) (reds: int) (blues: int) (greens: int) =
         match cube_game with
-        | [] -> reds <= 12 && blues <= 14 && greens <= 13
+        | [] -> (reds, blues, greens)
         | (number, color) :: rest -> 
           match color with
           | "red" -> satisfy rest (reds + int_of_string number) blues greens
           | "blue" -> satisfy rest reds (blues + int_of_string number) greens
           | "green" -> satisfy rest reds blues (greens + int_of_string number)
-          | _ -> false
+          | _ -> (-1, -1, -1)
       in satisfy cube_game 0 0 0
-  ) cubes
+  ) cubes in
+    List.fold_left (
+      fun (acc_reds, acc_blues, acc_greens) (reds, blues, greens) ->
+        let maxred = max acc_reds reds in
+        let maxblue = max acc_blues blues in
+        let maxgreen = max acc_greens greens in
+        (maxred, maxblue, maxgreen)
+    ) (0, 0, 0) game_cubes
 ;;
 
 let play_game (cubes: (string * (string * string) list list) list) =
-  let rec loop (cubes: (string * (string * string) list list) list) (ans: (string * bool) list) = 
+  let rec loop (cubes: (string * (string * string) list list) list) (ans) = 
     match cubes with
     | [] -> ans
     | (id, cube_list_of_games) :: rest -> 
       let process = process_game cube_list_of_games in
-      if process then
-        loop rest ((id, true) :: ans)
-      else
-        loop rest ((id, false) :: ans)
+      loop rest (process :: ans)
   in 
   loop cubes [] 
 ;;
 
 let played = play_game cube_games;;
 
-let get_true_total (l: (string * bool) list) =
+let get_true_total (l: (int * int * int) list) =
   List.fold_left (
-    fun acc (id, bool) -> 
-      if bool then acc + (int_of_string id) else acc
+    fun i (r, b, g) ->
+      let mul = r * b * g in
+      i + mul
   ) 0 l
 ;;
 
