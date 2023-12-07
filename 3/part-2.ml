@@ -111,26 +111,27 @@ let engine_schematic(pslist: string list) =
 
           (* if (i=-1, j=-1) is a number or (i=-1, j=+1) is a number, omit (i=-1, j=0). If (i=-1, j=0) is a number, omit the others *)
           
-          let rec cleaner (surr_nums: (int * int * int * int * char) list) (keep: (int * int * char) list)  (middleflag: bool) (rightflag: bool) (i:int) (j:int) = 
+          let rec cleaner (surr_nums: (int * int * int * int * char) list) (keep: (int * int * char) list)  (middleflag: bool) (rightflag: bool) (bmiddleflag: bool) (brightflag: bool) (i:int) (j:int) = 
             match surr_nums with
             | [] -> keep  
-            | (-1, -1, x, y, s) :: tl ->      cleaner tl ((x, y, s) :: keep) true rightflag i j
+            | (-1, -1, x, y, s) :: tl ->      cleaner tl ((x, y, s) :: keep) true rightflag bmiddleflag brightflag i j
             | (-1, 0, x, y, s) :: tl ->
-              if middleflag then              cleaner tl keep middleflag true i j
-              else                            cleaner tl ((x, y, s) :: keep) middleflag true i j
+              if middleflag then              cleaner tl keep middleflag true bmiddleflag brightflag i j
+              else                            cleaner tl ((x, y, s) :: keep) middleflag true bmiddleflag brightflag i j
             | (-1, 1, x, y, s) :: tl ->
-              if rightflag then               cleaner tl keep false false i j
-              else                            cleaner tl ((x, y, s) :: keep) false false i j
+              if rightflag then               cleaner tl keep false false bmiddleflag brightflag i j
+              else                            cleaner tl ((x, y, s) :: keep) false false bmiddleflag brightflag i j
 
-            | (1, -1, x, y, s) :: tl ->       cleaner tl ((x, y, s) :: keep) true rightflag i j
+
+            | (1, -1, x, y, s) :: tl ->       cleaner tl ((x, y, s) :: keep) middleflag rightflag true brightflag i j
             | (1, 0, x, y, s) :: tl -> 
-              if middleflag then              cleaner tl keep middleflag true i j
-              else                            cleaner tl ((x, y, s) :: keep) middleflag true i j
+              if bmiddleflag then             cleaner tl keep middleflag rightflag bmiddleflag true i j
+              else                            cleaner tl ((x, y, s) :: keep) middleflag rightflag bmiddleflag true i j
             | (1, 1, x, y, s) :: tl -> 
-              if rightflag then               cleaner tl keep false false i j
-              else                            cleaner tl ((x, y, s) :: keep) false false i j
+              if brightflag then              cleaner tl keep false false false false i j
+              else                            cleaner tl ((x, y, s) :: keep) false false false false i j
 
-            | (_, _, x, y, s) :: tl ->        cleaner tl ((x, y, s) :: keep) middleflag rightflag i j
+            | (_, _, x, y, s) :: tl ->        cleaner tl ((x, y, s) :: keep) middleflag rightflag bmiddleflag brightflag i j
           in
           
           let adjusted_surr_nums = 
@@ -144,7 +145,7 @@ let engine_schematic(pslist: string list) =
           List.iter (fun (i,j,x,y,s) -> print_int i; print_char ','; print_int j; print_char '|'; print_int x; print_char ','; print_int y; print_char '|'; print_char s; print_char ' ') adjusted_surr_nums;
           print_string "\n";
 
-          let cleaned = cleaner adjusted_surr_nums [] false false i j in
+          let cleaned = cleaner adjusted_surr_nums [] false false false false i j in
 
           (*print cleaned*)
           print_string "cleaned: ";
