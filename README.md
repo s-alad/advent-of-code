@@ -1,3 +1,3 @@
-# advent-of-code-2023-ocaml
+# advent-of-code
 
-forcing myself to do advent of code in OCAML
+forcing myself to do advent of code in various languages
